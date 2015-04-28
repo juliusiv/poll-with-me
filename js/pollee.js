@@ -3,25 +3,30 @@ function connectToPoll(pollID) {
   var pollee = new Peer({key: apiKey});
   pollee.on("open", function(id) {
     console.log("New pollee created with ID " + id);
+    // $('#current-question').show();
   });
   pollee.on("error", function(err) {
-    $("#id").text(err);
+    $('#error').text(err);
   });
 
   var conn = pollee.connect(pollID);
-  conn.on("open", function() {
-    console.log("Connection opened and ready.");
-    $("#poll-form").show();
+  conn.on('open', function() {
+    console.log('Connection opened and ready.');
+    $('#poll-form').show();
 
-    $("#poll-form").submit(function(e) {
+    $('#poll-form').submit(function(e) {
       e.preventDefault();
-      var score = $("input:checked").val();
+      var score = $('input[name=score]:checked').val();
       conn.send({pollee: pollee.id, score: score});
-      console.log("Sending score: " + score);
+      console.log('Sending score: ' + score);
     });
   });
-  conn.on("data", function(data) {
-    console.log("Received data ");
+  conn.on('data', function(data) {
+    console.log('Received data.');
+    $('#current-question').text(data['q']);
+    for(var k in data) {
+      console.log('  ' + k + ": " + data[k]);
+    }
   });
 
   return [pollee, conn];

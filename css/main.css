@@ -3,6 +3,6 @@ body {
   Helvetica, Arial, "Lucida Grande", sans-serif;
 }
 
-#poll-form {
+.init-hidden {
   display: none;
 }
