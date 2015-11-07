@@ -1,83 +1,104 @@
-var current_q = '';
-var q_num = 0;
-var polling = false;
-var poller;
-var past_answers = []
-// An arry of objects representing each question's votes. The objects contain an
-// ID:answer pair where the ID is the peer's ID.
-var answers = {};
+// The Poll object stores all of the poll's state.
+var Poll = {
+  poller: null,
+  polling: true,
+  q_num: 0,
+  questions: []
+
+  // this.getAnswers = function(num) {
+  //   return questions[num];
+  // }
+}
+
+function Question(question, number) {
+  this.question = question;
+  this.number = number;
+  this.answers = [];
+}
 
 // Create a new poll.
 function newPoll() {
-  poller = new Peer({key: apiKey});
-  poller.on('open', function(id) {
+  Poll.poller = new Peer({key: apiKey});
+  Poll.poller.on('open', function(id) {
     console.log('Peer/poll id: ' + id);
-    newQuestion();
+    bindFunctions();
+
+    $('#current-question').text('');
+    $('#question-form').show();
+    $('#stop-polling').prop('disabled', false);
+    $('#poller-ctrl').show();
   });
 
-  var conn = poller.on('connection', function(conn) {
+  var conn = Poll.poller.on('connection', function(conn) {
     console.log('New pollee: ' + conn.peer);
+
     // When a connection is opened, send the current question to the new peer.
     conn.on('open', function() {
       console.log('Connection opened.');
-      conn.send({q: current_q});
+      if (Poll.questions.length > 0) {
+        var question = Poll.questions[Poll.q_num].question;
+        conn.send({q: question});
+      }
     });
-    // When data is received, add it to the list of answers.
+
+    // When data is received, add it to the list of answers and redraw the plot.
     conn.on('data', function(data) {
       console.log('Pollee ' + data.pollee + ' voted ' + data.score);
-      if(polling) {
-        answers[data.pollee] = data.score;
+      if(Poll.polling) {
+        Poll.questions[Poll.q_num].answers.push(data.score);
+        var answers = Poll.questions[Poll.q_num].answers;
         var ans = Object.keys(answers).map(function(id) {
           return answers[id];
         });
-        drawAnswers(ans, current_q);
+        drawAnswers(ans, Poll.questions[Poll.q_num].question);
       }
-    });
-    // When the connection is closed delete that peer's votes from the answers.
-    conn.on('close', function() {
-      delete answers[conn.peer.id];
     });
   });
 
   $('#new-poll').hide();
 }
 
+// Bind some stuff to different buttons that exist on the poller.
+function bindFunctions() {
+  $('#new-question').click(function() {
+    newQuestion();
+  });
 
-// Handle a new question.
-function newQuestion() {
-  q_num += 1;
-  $('#current-question').text('');
-  $('#question-form').show();
-  $('#stop-polling').prop('disabled', false);
+  $('#stop-polling').click(function() {
+    Poll.polling = false;
+    $('#stop-polling').prop('disabled', 'true');
+    console.log('Polling stopped.');
+  });
 
-  // Polling starts right when the question is submitted.
-  $('#question-form').submit(function(e) {
+  $('#end-poll').click(function() {
+    endPoll();
+  });
+
+  $('#question-submit').click(function(e) {
     e.preventDefault();
     $('#question-form').hide();
     
-    polling = true;
+    Poll.polling = true;
     $('#new-question').show();
     $('#stop-polling').show();
     $('#end-poll').show();
 
-    current_q = $('#question-form input[name=question]').val();
-    $('#current-question').text(current_q);
-    $('#question-form input[name=question]').val('');
+    question = $('#question-text').val();
+    Poll.questions.push(new Question(question, Poll.q_num));
+    $('#current-question').text(question);
+    $('#question-text').val('');
 
-    Object.keys(poller.connections).map(function(conn) {
-      conn.send({q: current_q});
-    });
-
-    $('#new-question').click(function() {
-      newQuestion();
-    });
-    $('#stop-polling').click(function() {
-      polling = false;
-      $('#stop-polling').prop('disabled', true);
-      console.log('Polling stopped');
-    });
-    $('#end-poll').click(function() {
-      endPoll();
+    // Send the question to all of the pollees.
+    Object.keys(Poll.poller.connections).map(function(conn) {
+      conn.send({q: question});
     });
   });
+}
+
+// Handle a new question.
+function newQuestion() {
+  $('#current-question').text(question);
+  $('#question-form').hide();
+  $('#stop-polling').prop('disabled', false);
+  Poll.q_num += 1;
 }

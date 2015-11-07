@@ -8,12 +8,14 @@
 
   <!-- javascript bits and bobs -->
   <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.0/jquery.min.js'></script>
-  <script src='http://cdn.peerjs.com/0.3/peer.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/peerjs/0.3.14/peer.min.js'></script>
   <script  src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js'></script>
   
   <script src='js/main.js'></script>
   <script src='js/poller.js'></script>
   <script src='js/pollee.js'></script>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png">
 </head>
 <body>
   <h1>Welcome to Poll-with-me</h1>
@@ -21,17 +23,18 @@
   <p id='error'></p>
   
   <input type='button' id='new-poll' value='Create a New Poll'>
-
-  <canvas id="pollChart" width="400" height="400"></canvas>
+  <canvas id="poll-chart" width="400" height="400"></canvas>
   
-  <form id='question-form' class='init-hidden' >
-    <input type='text' name='question'>
-    <input type='submit' value='Set Question'>
-  </form>
+  <div id='question-form' class='init-hidden'>
+    <input type='text' id='question-text'>
+    <input type='button' id='question-submit' value='Set Question'>  
+  </div>
 
-  <input type='button' class='init-hidden' id='new-question' value='New Question'>
-  <input type='button' class='init-hidden' id='stop-polling' value='Stop Polling'>
-  <input type='button' class='init-hidden' id='end-poll' value='End Poll'>
+  <div id='poller-ctrl' class='init-hidden'>
+    <input type='button' id='new-question' value='New Question'>
+    <input type='button' id='stop-polling' value='Stop Polling'>
+    <input type='button' id='end-poll' value='End Poll'>
+  </div>
 
 
   <form id='poll-form' class='init-hidden' >
@@ -45,7 +48,7 @@
     <input type='radio' name='score' value=8>8
     <input type='radio' name='score' value=9>9
     <input type='radio' name='score' value=10>10
-    <input type='submit' value='Vote'>
+    <input id="vote-btn" type='submit' value='Vote'>
   </form>
 
 </body>

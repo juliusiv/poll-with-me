@@ -4,7 +4,7 @@ var poll_types = ["checkboxes", "scale"];
 var ctx;
 
 $(document).ready(function() {
-  ctx = $("#pollChart").get(0).getContext("2d");
+  ctx = $("#poll-chart").get(0).getContext("2d");
   pollID = location.hash.substring(1);
 
   if (!pollID) {
